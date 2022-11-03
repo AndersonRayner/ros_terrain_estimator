@@ -22,9 +22,8 @@ void rangeCallback(const sensor_msgs::Range::ConstPtr& msg){
 
   // Take in the raw rangefinder reading
   float range = msg->range;
-  float min_range = std::max(msg->min_range,0.5f);// / 100.0f,0.5f);
-  float max_range = msg->max_range;// / 100.0f;
-  //max_range = 50.0f;
+  float min_range = std::max(msg->min_range,0.5f);  // min_range = 0.0;
+  float max_range = msg->max_range;                 // max_range = 100.0;
 
   // If we're outside the range of the rangefinder, reject the new data and just publish the old values
   if (range < min_range) update_terrain_estimate = false;
@@ -36,24 +35,22 @@ void rangeCallback(const sensor_msgs::Range::ConstPtr& msg){
     try
     {
       geometry_msgs::TransformStamped quadPose = tfBuffer.lookupTransform("map", "uav1", msg->header.stamp, ros::Duration(1.0));
+
       tf2::Quaternion quat_tf;
       tf2::convert(quadPose.transform.rotation, quat_tf);  // Check correct one
       tf2::Matrix3x3 m(quat_tf);
-      double roll, pitch, yaw, tilt;
-      m.getRPY(roll, pitch, yaw);
-      tilt = atanf(sqrtf(tanf(roll)*tanf(roll)+tanf(pitch)*tanf(pitch)));
+
+      double tilt_factor = m.getRow(2)[2];  // From ArduPilot, search RANGEFINDER_TILT_CORRECTION
 
       // Only update the terrain estimate if we're not too tilted (causes bad stuff)
-      if (tilt < 45.0/57.3)
+      if (tilt_factor > 0.7071)
       {
-        
         // Calculate the terrain altitude relative to home
-        float tilt_factor = cosf(tilt);
         //ROS_INFO("Range: %6.2f, Alt: %6.2f, Tilt Factor: %6.3f",range,quadPose.transform.translation.z,tilt_factor);
         float terrain_alt_raw = quadPose.transform.translation.z - range*tilt_factor;  
-        const float filter_const = 0.75f; 
+        const float filter_const = 0.90f; 
 
-        terrain_alt = terrain_alt*filter_const + terrain_alt_raw*(1-filter_const); 
+        terrain_alt = terrain_alt*filter_const + terrain_alt_raw*(1.0-filter_const); 
       
       }
 
@@ -96,8 +93,8 @@ int main(int argc, char** argv){
   tf2_ros::TransformListener tfListener(tfBuffer);
 
   // Subscribe to the rangefinder topic
-  ros::Subscriber sub = node.subscribe("mavros/rangefinder/rangefinder", 1, &rangeCallback);
-  pub = node.advertise<sensor_msgs::Range>("mavros/rangefinder/terrain_height", 3);
+  ros::Subscriber sub = node.subscribe("mavros/distance_sensor/rangefinder_pub", 1, &rangeCallback);
+  pub = node.advertise<sensor_msgs::Range>("mavros/distance_sensor/terrain_height", 3);
 
   // Spin forever!
   ros::spin();
