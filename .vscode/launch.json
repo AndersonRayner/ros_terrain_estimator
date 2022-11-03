@@ -1,0 +1,25 @@
+{
+	// Use IntelliSense to learn about possible attributes.
+	// Hover to view descriptions of existing attributes.
+	// For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+	"version": "0.2.0",
+	"configurations": [
+		// Terrain Estimator launch
+		{
+			"name": "(DEBUG) Terrain Estimator",
+			"type": "ros",
+			"request": "launch",
+			"target": "${workspaceFolder}/launch/terrain_estimator.launch",
+			"preLaunchTask": "catkin: debug", // tasks.json
+		},
+
+		{
+			"name": "Terrain Estimator",
+			"type": "ros",
+			"request": "launch",
+			"target": "${workspaceFolder}/launch/terrain_estimator.launch",
+			"preLaunchTask": "catkin: build", // tasks.json
+		},
+
+	]
+}
