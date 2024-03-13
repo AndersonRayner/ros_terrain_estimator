@@ -1,5 +1,5 @@
 <launch>
-    <group ns="uav1">
+    <group ns="uav">
         <node respawn="true" pkg="terrain_estimator" type="terrain_estimator" name="terrain_estimator1" output="screen" />
     </group>
 </launch>

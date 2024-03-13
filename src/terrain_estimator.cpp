@@ -34,7 +34,7 @@ void rangeCallback(const sensor_msgs::Range::ConstPtr& msg){
   {
     try
     {
-      geometry_msgs::TransformStamped quadPose = tfBuffer.lookupTransform("map", "uav1", msg->header.stamp, ros::Duration(1.0));
+      geometry_msgs::TransformStamped quadPose = tfBuffer.lookupTransform("map", "uav", msg->header.stamp, ros::Duration(1.0));
 
       tf2::Quaternion quat_tf;
       tf2::convert(quadPose.transform.rotation, quat_tf);  // Check correct one
